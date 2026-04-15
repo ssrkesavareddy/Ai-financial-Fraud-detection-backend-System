@@ -94,3 +94,5 @@ uvicorn==0.30.1
 watchfiles==1.1.1
 websockets==16.0
 xgboost==2.0.3
+requests
+pip ==26.0.1
