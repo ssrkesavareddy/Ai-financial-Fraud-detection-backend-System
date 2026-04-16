@@ -47,7 +47,7 @@ def create_reset_token(email: str):
 
 
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
-    from models.user import User
+    from app.models.user import User
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
