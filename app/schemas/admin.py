@@ -1,5 +1,16 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field,  constr
 from typing import List
+from datetime import date
+
+
+
+PhoneStr = constr(pattern=r"^\+\d{10,15}$")
+
+class AdminCreateUser(BaseModel):
+    email: EmailStr
+    password: str
+    phone: PhoneStr
+    dob: date
 
 
 class AdminTransactionRequest(BaseModel):

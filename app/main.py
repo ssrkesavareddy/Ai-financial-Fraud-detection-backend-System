@@ -19,7 +19,9 @@ app.add_middleware(
 )
 
 from app.api import auth_router, transactions_router, analytics_router, users_router, admin_router
+from app.api.admin import router as admin_router
 
+app.include_router(admin_router)
 app.include_router(auth_router)
 app.include_router(transactions_router)
 app.include_router(analytics_router)

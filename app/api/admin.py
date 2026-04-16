@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 
+from app.models.user import User
+
+from app.core.security import hash_password
 from app.core.database import get_db
 from app.core.security import require_role
 from app.schemas.admin import *
 from app.services import admin_service
-
+from app.schemas.admin import AdminCreateUser
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
@@ -39,3 +42,31 @@ def get_audit_logs(page: int = Query(1, ge=1), limit: int = Query(10, ge=1, le=1
                   admin_id: int | None = None, action: str | None = None,
                   db: Session = Depends(get_db), admin=Depends(require_role(["admin"]))):
     return admin_service.get_audit_logs(page, limit, admin_id, action, db)
+
+
+
+
+@router.post("/create-user")
+def create_user_by_admin(
+    data: AdminCreateUser,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_role(["admin"]))
+):
+    existing = db.query(User).filter(User.email == data.email).first()
+
+    if existing:
+        raise HTTPException(400, "User already exists")
+
+    user = User(
+        email=data.email,
+        password=hash_password(data.password),
+        phone=data.phone,
+        dob=data.dob,
+        is_verified=True,
+        account_balance=0.0
+    )
+
+    db.add(user)
+    db.commit()
+
+    return {"msg": "User created successfully"}
