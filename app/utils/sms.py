@@ -6,7 +6,7 @@ FAST2SMS_API_KEY = os.getenv("FAST2SMS_API_KEY")
 
 def send_sms(phone: str, message: str):
     if not FAST2SMS_API_KEY:
-        raise Exception("Missing FAST2SMS API KEY")
+        return
 
     url = "https://www.fast2sms.com/dev/bulkV2"
 

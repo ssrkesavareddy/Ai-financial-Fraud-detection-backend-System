@@ -1,7 +1,7 @@
 import random
 from datetime import datetime, timedelta
 from fastapi import HTTPException
-from app.security import hash_text, verify_text
+from app.core.security import hash_text, verify_text
 
 
 def generate_otp():

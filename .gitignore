@@ -4,3 +4,5 @@ __pycache__/
 *.pyc
 *.pkl
 .idea/
+create_admin.py
+app.zip

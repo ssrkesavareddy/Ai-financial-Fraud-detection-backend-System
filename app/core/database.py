@@ -6,6 +6,8 @@ import os
 load_dotenv()
 
 DATABASE_URL = os.getenv("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("FATAL: DATABASE_URL environment variable is not set.")
 
 if DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
@@ -13,17 +15,14 @@ if DATABASE_URL.startswith("postgres://"):
 engine = create_engine(
     DATABASE_URL,
     pool_pre_ping=True,
-    pool_size=5,
-    max_overflow=10
+    pool_size=3,
+    max_overflow=5,
+    pool_recycle=300,
 )
 
-SessionLocal = sessionmaker(
-    bind=engine,
-    autoflush=False,
-    autocommit=False
-)
-
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
+
 
 def get_db():
     db = SessionLocal()
