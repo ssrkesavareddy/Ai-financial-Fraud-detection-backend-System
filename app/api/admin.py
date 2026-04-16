@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query, HTTPException
 from sqlalchemy.orm import Session
 
+from app.models import AuditLog
 from app.models.user import User
 
 from app.core.security import hash_password
@@ -70,3 +71,50 @@ def create_user_by_admin(
     db.commit()
 
     return {"msg": "User created successfully"}
+
+@router.patch("/users/{user_id}/block")
+def block_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_role(["admin"]))
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    user.is_blocked = True
+
+    db.add(AuditLog(
+        admin_id=admin.id,
+        action="block_user",
+        target_user_id=user.id,
+        details=f"Admin {admin.id} blocked user {user.id}"
+    ))
+
+    db.commit()
+
+    return {"msg": "User blocked successfully"}
+
+
+@router.patch("/users/{user_id}/unblock")
+def unblock_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_role(["admin"]))
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(404, "User not found")
+
+    user.is_blocked = False
+    db.add(AuditLog(
+        admin_id=admin.id,
+        action= "unblock_user",
+        target_user_id=user.id,
+        details=f"Admin {admin.id} blocked user {user.id}"
+    ))
+    db.commit()
+
+    return {"msg": "User unblocked successfully"}
