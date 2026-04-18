@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from uuid import UUID
 
 
 class FraudRateResponse(BaseModel):
@@ -9,7 +10,7 @@ class FraudRateResponse(BaseModel):
 
 
 class FraudLogItem(BaseModel):
-    user_id: int
+    user_id: UUID   # ✅ FIXED
     amount: float
     location: str
     fraud_score: float
@@ -19,7 +20,7 @@ class FraudLogItem(BaseModel):
 
 
 class OTPLogItem(BaseModel):
-    user_id: int
+    user_id: UUID   # ✅ FIXED
     otp_type: str
     status: str
     attempts: int

@@ -5,7 +5,6 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 import hashlib
-
 from app.core.config import SECRET_KEY
 from app.core.database import get_db
 
@@ -68,10 +67,12 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     return user
 
 
-def require_role(required_roles: list[str]):
-    def role_checker(user=Depends(get_current_user)):
-        if user.role not in required_roles:
+def require_role(roles: list[str]):
+    roles = [r.lower() for r in roles]
+
+    def wrapper(user=Depends(get_current_user)):
+        if user.role.lower() not in roles:
             raise HTTPException(403, "Access denied")
         return user
 
-    return role_checker
+    return wrapper

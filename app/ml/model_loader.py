@@ -1,59 +1,39 @@
 import os
-import joblib
 import requests
-import logging
+import joblib
+import io
 
-logger = logging.getLogger(__name__)
-
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-PIPELINE_PATH = os.path.join(BASE_DIR, "ml", "fraud_pipeline.pkl")
-
-PIPELINE_URL = os.getenv("PIPELINE_URL")
-
-pipeline = None
-MODEL_LOADED = False
+_pipeline = None
+_threshold = None
 
 
-def download_file(url, path):
+def load_from_url(url: str):
     if not url:
-        logger.warning("PIPELINE_URL not set")
-        return
+        raise RuntimeError("URL not set")
 
-    if not os.path.exists(path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
+    response = requests.get(url)
+    response.raise_for_status()
 
-        try:
-            r = requests.get(url, timeout=10)
-            r.raise_for_status()
+    # safety check
+    if b"<html" in response.content[:200].lower():
+        raise RuntimeError("Downloaded HTML instead of model")
 
-            with open(path, "wb") as f:
-                f.write(r.content)
-
-            logger.info("Model downloaded successfully")
-
-        except Exception as e:
-            logger.error(f"Download failed: {e}")
-
-
-def load_model():
-    global pipeline, MODEL_LOADED
-
-    try:
-        download_file(PIPELINE_URL, PIPELINE_PATH)
-        pipeline = joblib.load(PIPELINE_PATH)
-        MODEL_LOADED = True
-        logger.info("ML pipeline loaded successfully")
-
-    except Exception as e:
-        logger.error(f"Model load failed: {e}")
-        MODEL_LOADED = False
+    return joblib.load(io.BytesIO(response.content))
 
 
 def get_pipeline():
-    if not MODEL_LOADED:
-        load_model()
+    global _pipeline
 
-    if pipeline is None:
-        raise RuntimeError("ML model not loaded")
+    if _pipeline is None:
+        _pipeline = load_from_url(os.getenv("PIPELINE_URL"))
 
-    return pipeline
+    return _pipeline
+
+
+def get_threshold():
+    global _threshold
+
+    if _threshold is None:
+        _threshold = load_from_url(os.getenv("THRESHOLD_URL"))
+
+    return _threshold

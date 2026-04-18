@@ -1,8 +1,33 @@
-.env
-.venv
-__pycache__/
-*.pyc
-*.pkl
-.idea/
+verifymodel.py
 create_admin.py
 app.zip
+app (2).zip
+clear_db.py
+create_admin.py
+runtime.txt
+.dockerignore
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual env
+.venv/
+env/
+
+# Env files
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+
+# Alembic cache
+alembic/versions/*.pyc

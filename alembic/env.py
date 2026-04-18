@@ -1,25 +1,28 @@
 from logging.config import fileConfig
-from sqlalchemy import create_engine, pool
+from sqlalchemy import create_engine
 from alembic import context
+
+from app.core.database import Base, DATABASE_URL
+
+# 🔴 EXPLICIT IMPORTS (NO WILDCARD)
+from app.models.user import User
+from app.models.transaction import Transaction
+from app.models.ledger import LedgerEntry
+from app.models.fraud_log import FraudLog, OTPLog
+from app.models.transaction_report import TransactionReport
+from app.models.audit_log import AuditLog
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# ✅ FIXED IMPORTS
-from app.core.database import Base, DATABASE_URL
-from app.models.user import User
-from app.models.transaction import Transaction
-from app.models.fraud_log import FraudLog, OTPLog
-
 target_metadata = Base.metadata
 
 
-def run_migrations_offline() -> None:
-    url = DATABASE_URL
+def run_migrations_offline():
     context.configure(
-        url=url,
+        url=DATABASE_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -29,13 +32,21 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def run_migrations_online() -> None:
-    connectable = create_engine(DATABASE_URL, poolclass=pool.NullPool)
+def run_migrations_online():
+    connectable = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+    )
 
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=target_metadata
+            target_metadata=target_metadata,
+            compare_type=True,
+            compare_server_default=True,
+            render_as_batch=True,
         )
 
         with context.begin_transaction():
